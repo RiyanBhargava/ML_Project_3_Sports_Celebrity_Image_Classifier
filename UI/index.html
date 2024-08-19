@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Celebrity Image Classifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .col {
+            flex: 1;
+            max-width: 18%;
+            text-align: center;
+        }
+        .custom-circle-image {
+            width: 100px;  /* Increased the size */
+            height: 100px; /* Increased the size */
+            overflow: hidden;
+            border-radius: 50%;
+        }
+        .custom-circle-image img {
+            width: 100%;   /* Ensure the image covers the entire circle */
+            height: 100%;  /* Ensure the image covers the entire circle */
+            object-fit: cover;
+        }
+        input[type="file"] {
+            margin-top: 20px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #uploadedImage {
+            margin-top: 20px;
+            max-width: 100px;  /* Same size as the athlete images */
+            height: 100px;     /* Same size as the athlete images */
+            border-radius: 50%;
+            object-fit: cover;
+            display: none;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sports Celebrity Image Classifier</h1>
+
+        <!-- Athlete Profiles Section -->
+        <div class="row">
+            <div class="col card-wrapper" data-player="lionel_messi">
+                <div class="card border-0">
+                    <div class="position-relative rounded-circle overflow-hidden mx-auto custom-circle-image">
+                        <img class="w-100 h-100" src="./images/messi.jpg" alt="Lionel Messi">
+                    </div>
+                    <div class="card-body text-center mt-4">
+                        <h4 class="text-uppercase card-title">Lionel Messi</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col card-wrapper" data-player="cristiano_ronaldo">
+                <div class="card border-0">
+                    <div class="position-relative rounded-circle overflow-hidden mx-auto custom-circle-image">
+                        <img class="w-100 h-100" src="./images/cristiano.jpg" alt="Cristiano Ronaldo">
+                    </div>
+                    <div class="card-body text-center mt-4">
+                        <h4 class="text-uppercase card-title">Cristiano Ronaldo</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col card-wrapper" data-player="neymar_jr">
+                <div class="card border-0">
+                    <div class="position-relative rounded-circle overflow-hidden mx-auto custom-circle-image">
+                        <img class="w-100 h-100" src="./images/neymar.jpg" alt="Neymar Jr">
+                    </div>
+                    <div class="card-body text-center mt-4">
+                        <h4 class="text-uppercase card-title">Neymar Jr</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col card-wrapper" data-player="novak_djokovic">
+                <div class="card border-0">
+                    <div class="position-relative rounded-circle overflow-hidden mx-auto custom-circle-image">
+                        <img class="w-100 h-100" src="./images/novak.jpg" alt="Novak Djokovic">
+                    </div>
+                    <div class="card-body text-center mt-4">
+                        <h4 class="text-uppercase card-title">Novak Djokovic</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col card-wrapper" data-player="stephen_curry">
+                <div class="card border-0">
+                    <div class="position-relative rounded-circle overflow-hidden mx-auto custom-circle-image">
+                        <img class="w-100 h-100" src="./images/stephen.jpg" alt="Stephen Curry">
+                    </div>
+                    <div class="card-body text-center mt-4">
+                        <h4 class="text-uppercase card-title">Stephen Curry</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of Athlete Profiles Section -->
+
+        <input type="file" id="imageUpload" accept="image/*" onchange="previewImage()">
+        <img id="uploadedImage" src="#" alt="Uploaded Image Preview">
+        <button onclick="uploadAndClassifyImage()">Classify Image</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function previewImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            const preview = document.getElementById('uploadedImage');
+            const reader = new FileReader();
+
+            reader.onloadend = function() {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "#";
+                preview.style.display = 'none';
+            }
+        }
+
+        function uploadAndClassifyImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select an image.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Image = event.target.result;
+
+                fetch('http://localhost:5000/classify_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `image_data=${encodeURIComponent(base64Image)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <p>Classified as: ${data[0].class}</p>
+                        <p>Confidence: ${data[0].class_probabilty[data[0].class_dictionary[data[0].class]]}%</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("An error occurred while classifying the image.");
+                });
+            };
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>
+
+
+
+
